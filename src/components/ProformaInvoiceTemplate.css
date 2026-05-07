@@ -1,0 +1,323 @@
+.pi-paper {
+  width: 794px;
+  min-height: 1123px;
+  background: #fff;
+  font-family: "Inter", sans-serif;
+  color: #000;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.pi-watermark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.12;
+}
+
+.pi-watermark img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 700px;
+  object-fit: contain;
+}
+
+.pi-content {
+  position: relative;
+  z-index: 1;
+  border: 1px solid #000;
+  margin: 10px;
+}
+
+.pi-header-main {
+  text-align: center;
+  background: #e0e6e2;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 4px;
+  border-bottom: 1px solid #000;
+}
+
+.pi-top-row {
+  display: flex;
+  border-bottom: 1px solid #000;
+}
+
+.pi-logo-col {
+  width: 20%;
+  border-right: 1px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.pi-logo-col img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.pi-title-col {
+  width: 50%;
+  border-right: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.pi-company-name {
+  color: #dc2626;
+  font-size: 28px;
+  font-weight: 900;
+  margin: 0 0 5px 0;
+}
+
+.pi-blue-text {
+  color: #1e40af;
+  font-weight: bold;
+  margin: 0;
+  font-size: 11px;
+}
+.pi-title-col p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.pi-info-col {
+  width: 30%;
+}
+
+.pi-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+.pi-info-table td {
+  border-bottom: 1px solid #000;
+  padding: 6px;
+  vertical-align: middle;
+}
+
+.pi-info-table td.pi-blue-text {
+  border-right: 1px solid #000;
+  width: 45%;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.pi-middle-header {
+  display: flex;
+  background: #e0e6e2;
+  font-weight: bold;
+  font-size: 11px;
+  color: #1e40af;
+  border-bottom: 1px solid #000;
+}
+
+.pi-half-col {
+  width: 50%;
+  border-right: 1px solid #000;
+  text-align: center;
+  padding: 4px;
+}
+
+.pi-middle-row {
+  display: flex;
+  border-bottom: 1px solid #000;
+}
+
+.pi-bill-col {
+  width: 50%;
+  border-right: 1px solid #000;
+}
+
+.pi-bill-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.pi-bill-table td {
+  border-bottom: 1px solid #000;
+  padding: 6px;
+}
+
+.pi-bank-col {
+  width: 50%;
+  position: relative;
+}
+
+.pi-bank-details {
+  font-size: 10px;
+  font-weight: bold;
+  padding: 10px;
+  line-height: 1.8;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.pi-red-text {
+  color: #dc2626;
+}
+
+.pi-qr-box {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  text-align: center;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+.pi-qr-box img {
+  width: 70px;
+  height: 70px;
+  margin-top: 4px;
+}
+
+.pi-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  border-bottom: 1px solid #000;
+}
+
+.pi-items-table th, .pi-items-table td {
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  padding: 6px 4px;
+}
+
+.pi-items-table th {
+  vertical-align: middle;
+}
+
+.pi-total-row td {
+  border-bottom: none;
+}
+.pi-total-row td:first-child {
+  text-align: center;
+  padding-right: 30px;
+}
+
+.pi-bottom-section {
+  display: flex;
+}
+
+.pi-bottom-left {
+  width: 65%;
+  border-right: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.pi-word-row {
+  display: flex;
+  border-bottom: 1px solid #000;
+  align-items: center;
+}
+
+.pi-word-label {
+  width: 15%;
+  border-right: 1px solid #000;
+  padding: 10px 4px;
+  font-size: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.pi-word-value {
+  width: 85%;
+  padding: 10px;
+  color: #dc2626;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.pi-terms {
+  padding: 10px;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1.5;
+}
+
+.pi-terms-title {
+  color: #dc2626;
+  font-style: italic;
+  text-decoration: underline;
+  margin-bottom: 4px;
+}
+
+.pi-bottom-right {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.pi-totals-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pi-total-label {
+  border-bottom: 1px solid #000;
+  border-right: 1px solid #000;
+  padding: 6px;
+  color: #1e40af;
+}
+
+.pi-total-val {
+  border-bottom: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+}
+
+.pi-final-amt-row {
+  background: #e0e6e2;
+  font-size: 15px;
+}
+
+.pi-final-amt-row .pi-total-label {
+  color: #000;
+}
+.pi-final-amt-row .pi-total-val {
+  color: #dc2626;
+}
+
+.pi-signatures {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 10px;
+  font-size: 10px;
+}
+
+.pi-consignee-sign {
+  border-top: 1px solid #000;
+  background: #e0e6e2;
+  padding: 10px;
+  text-align: center;
+  font-size: 10px;
+}

@@ -16,6 +16,8 @@ const InvoiceHistory = () => {
   const [previewItems, setPreviewItems] = useState([]);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [editTerms, setEditTerms] = useState("");
+  const [updatingTerms, setUpdatingTerms] = useState(false);
   const pdfRef = useRef();
 
   useEffect(() => {
@@ -42,6 +44,7 @@ const InvoiceHistory = () => {
       const res = await api.get(`/invoices/${inv.id}`);
       setPreviewInvoice(res.data.invoice);
       setPreviewItems(res.data.items || []);
+      setEditTerms(res.data.invoice.terms || "");
       setShowPreviewModal(true);
     } catch {
       alert("Failed to load invoice details");
@@ -132,6 +135,22 @@ const InvoiceHistory = () => {
       fetchInvoices();
     } catch {
       alert("Failed to update status");
+    }
+  };
+
+  const saveUpdatedTerms = async () => {
+    if (!previewInvoice) return;
+    setUpdatingTerms(true);
+    try {
+      await api.patch(`/invoices/${previewInvoice.id}/terms`, { terms: editTerms, notes: previewInvoice.notes });
+      setPreviewInvoice({ ...previewInvoice, terms: editTerms });
+      // Update local list too
+      setInvoices(invoices.map(i => i.id === previewInvoice.id ? { ...i, terms: editTerms } : i));
+      alert("Terms updated successfully");
+    } catch {
+      alert("Failed to update terms");
+    } finally {
+      setUpdatingTerms(false);
     }
   };
 
@@ -296,10 +315,33 @@ const InvoiceHistory = () => {
                   bank_ifsc: inv.bank_ifsc,
                   bank_branch: inv.bank_branch,
                 }}
-                terms={inv.terms}
+                terms={editTerms}
                 transporter=""
                 deliveryLocation=""
               />
+            </div>
+
+            {/* Editable Terms Section */}
+            <div style={{ padding: "20px", borderTop: "1px solid #e5e7eb", background: "#f9fafb" }}>
+              <div className="card" style={{ marginBottom: 0 }}>
+                <div className="card-header"><h3>📄 Edit Invoice Terms</h3></div>
+                <div className="card-body">
+                  <div className="form-group full">
+                    <label>Terms & Conditions (Updates immediately in preview above)</label>
+                    <textarea
+                      value={editTerms}
+                      onChange={(e) => setEditTerms(e.target.value)}
+                      placeholder="Invoice terms..."
+                      style={{ minHeight: 180, background: "#fff" }}
+                    />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 12 }}>
+                    <button className="btn-primary" onClick={saveUpdatedTerms} disabled={updatingTerms}>
+                      {updatingTerms ? "Saving..." : "💾 Save Changes to Invoice"}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -151,7 +151,7 @@ const Settings = () => {
       <div style={{ display: "flex", gap: "30px", alignItems: "flex-start", flexWrap: "wrap" }}>
         {/* Sidebar */}
         <div className="settings-sidebar" style={{ width: "250px", flexShrink: 0, background: "#fff", padding: "20px", borderRadius: "12px", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          {["Account", "Company", "Bank", "Invoice Defaults"].map(tab => (
+          {["Account", "Company", "Bank"].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -165,7 +165,6 @@ const Settings = () => {
               {tab === "Account" && "👤 "}
               {tab === "Company" && "🏢 "}
               {tab === "Bank" && "🏦 "}
-              {tab === "Invoice Defaults" && "📄 "}
               {tab}
             </button>
           ))}
@@ -424,38 +423,6 @@ const Settings = () => {
             </div>
           )}
 
-          {activeTab === "Invoice Defaults" && (
-            <div className="card">
-              <div className="card-header"><h3>📄 Invoice Defaults</h3></div>
-              <div className="card-body">
-                <p style={{ fontSize: "0.9rem", color: "#6b7280", marginBottom: "16px" }}>These are the default terms applied to new invoices.</p>
-                <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 18 }}>
-                  <div style={{ ...fieldStyle, borderBottom: "none", flexDirection: "column", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ ...labelStyle, marginBottom: "4px" }}>Invoice Terms & Conditions</span>
-                    {isAdmin ? (
-                      <textarea
-                        value={orgSettings.terms_conditions || ""}
-                        onChange={(e) => setOrgSettings({ ...orgSettings, terms_conditions: e.target.value })}
-                        style={{ width: "100%", fontSize: "0.85rem", color: "#111827", lineHeight: 1.7, border: "1px solid #e5e7eb", borderRadius: 10, padding: 10, minHeight: "150px", resize: "vertical" }}
-                      />
-                    ) : (
-                      <pre style={{ margin: 0, fontFamily: "inherit", whiteSpace: "pre-wrap", fontSize: "0.85rem", color: "#333", lineHeight: 1.7 }}>
-                        {orgSettings.terms_conditions || "—"}
-                      </pre>
-                    )}
-                  </div>
-                </div>
-
-                {isAdmin && (
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-                    <button className="btn-primary" onClick={saveOrgSettings} disabled={saving}>
-                      {saving ? "Saving..." : "Save Invoice Defaults"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
 
 

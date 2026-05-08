@@ -438,13 +438,23 @@ const Invoice = () => {
         </div>
       </div></div>
 
-      {/* Terms & Notes */}
-      <div className="card"><div className="card-header"><h3>📝 Terms & Notes</h3></div><div className="card-body">
-        <div className="form-grid">
-          <div className="form-group full"><label>Internal Notes / Remarks</label><textarea value={invInfo.notes} onChange={e => setInvInfo({...invInfo, notes: e.target.value})} placeholder="Internal notes for this invoice..." style={{ minHeight: 80 }} /></div>
-          <div className="form-group full"><label>Terms & Conditions (Editable)</label><textarea value={terms} onChange={e => setTerms(e.target.value)} placeholder="Invoice terms..." style={{ minHeight: 120 }} /></div>
+      {/* Invoice Terms */}
+      <div className="card">
+        <div className="card-header">
+          <h3>📄 Invoice Terms</h3>
         </div>
-      </div></div>
+        <div className="card-body">
+          <div className="form-group full">
+            <label>Terms & Conditions</label>
+            <textarea
+              value={terms}
+              onChange={(e) => setTerms(e.target.value)}
+              placeholder="Invoice terms..."
+              style={{ minHeight: 180 }}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* PDF Preview - rendered on-screen but hidden by opacity for proper html2canvas capture */}
       {showPreview && <div className="pdf-capture-overlay" style={{ position: "absolute", top: 0, left: 0, opacity: 0.01, pointerEvents: "none", zIndex: -999 }}>

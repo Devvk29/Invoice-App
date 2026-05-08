@@ -140,6 +140,17 @@ router.patch("/:id/status", authenticateToken, async (req, res) => {
   }
 });
 
+// Update terms and notes — all users can update
+router.patch("/:id/terms", authenticateToken, async (req, res) => {
+  try {
+    const { terms, notes } = req.body;
+    await pool.query("UPDATE invoices SET terms = ?, notes = ? WHERE id = ?", [terms, notes, req.params.id]);
+    res.json({ message: "Terms and notes updated" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update terms and notes" });
+  }
+});
+
 // Delete — Admin only, or sales can delete their own invoices
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {

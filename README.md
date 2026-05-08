@@ -1,70 +1,53 @@
-# Getting Started with Create React App
+# Sikko Industries Invoice Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A professional, role-based invoice management system built for Sikko Industries. This application features a React-based frontend and a Node.js/Express backend with MySQL database integration.
 
-## Available Scripts
+## 🚀 Key Features
 
-In the project directory, you can run:
+- **Role-Based Access Control (RBAC)**:
+  - **Admin**: Full access to manage products, customers, invoices, and organization settings.
+  - **Sales/Accountant**: Restricted access. Can create invoices and manage their own history, but cannot access master customer or product lists.
+- **Advanced Invoicing**:
+  - Auto-calculation of CGST/SGST and discounts.
+  - Professional PDF generation with Sikko branding.
+  - Editable default Terms & Conditions and Internal Notes.
+  - Advanced status management (Pending/Paid).
+- **Unified Hosting**: The backend server is configured to serve the production frontend build, allowing for a single-server deployment on port 5000.
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Frontend**: React (v19), Axios, jsPDF, html2canvas.
+- **Backend**: Node.js, Express (v5), MySQL (mysql2).
+- **Styling**: Premium Vanilla CSS.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📦 Getting Started
 
-### `npm test`
+### 1. Prerequisites
+- Node.js installed.
+- MySQL Server running.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. Database Setup
+1. Create a database named `invoice_db`.
+2. Configure your credentials in `server/.env`.
+3. The system will automatically initialize tables and seed default data on first run.
 
-### `npm run build`
+### 3. Installation & Running
+```bash
+# Install dependencies
+npm install
+cd server
+npm install
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Start the unified production server
+npm start
+```
+The application will be available at: **http://localhost:5000**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📂 Project Structure
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- `/src`: React frontend source code.
+- `/server`: Express backend and database logic.
+- `/build`: Production-ready frontend bundle (served by backend).
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+*Developed for Sikko Industries.*

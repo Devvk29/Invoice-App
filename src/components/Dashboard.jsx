@@ -8,17 +8,24 @@ import "../Invoice.css";
 import ProformaInvoiceTemplate from "./ProformaInvoiceTemplate";
 import "./Dashboard.css";
 
-const StatCard = ({ label, value, icon, color, to }) => (
-  <Link to={to} style={{ textDecoration: "none" }}>
-    <div className="db-stat-card" style={{ "--accent": color }}>
+const StatCard = ({ label, value, icon, color, to, disabled }) => {
+  const content = (
+    <div className="db-stat-card" style={{ "--accent": color, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.8 : 1 }}>
       <div className="db-stat-icon">{icon}</div>
       <div className="db-stat-body">
         <div className="db-stat-value">{value}</div>
         <div className="db-stat-label">{label}</div>
       </div>
     </div>
-  </Link>
-);
+  );
+
+  if (disabled) return content;
+  return (
+    <Link to={to} style={{ textDecoration: "none" }}>
+      {content}
+    </Link>
+  );
+};
 
 const statusStyle = (status) => {
   const s = (status || "draft").toLowerCase();
@@ -103,18 +110,18 @@ const Dashboard = () => {
       <div className="db-kpi-grid">
         <StatCard to="/invoice-history" label="Total Revenue" value={fmt(data.stats.revenue)} icon="₹" color="#2563eb" />
         <StatCard to="/invoice-history" label="Invoices" value={data.stats.invoices} icon="📄" color="#7c3aed" />
-        <StatCard to="/customers" label="Customers" value={data.stats.customers} icon="👥" color="#059669" />
-        <StatCard to="/products" label="Products" value={data.stats.products} icon="📦" color="#d97706" />
+        <StatCard to="/customers" label="Customers" value={data.stats.customers} icon="👥" color="#059669" disabled={user?.role !== "admin"} />
+        <StatCard to="/products" label="Products" value={data.stats.products} icon="📦" color="#d97706" disabled={user?.role !== "admin"} />
       </div>
 
       {/* ── Quick Actions ── */}
       <div className="db-actions-row">
         {[
           { to: "/invoice", label: "Create Invoice", icon: "📄" },
-          { to: "/customers", label: "Add Customer", icon: "👤" },
+          { to: "/customers", label: "Add Customer", icon: "👤", adminOnly: true },
           { to: "/reports", label: "View Reports", icon: "📊" },
           { to: "/settings", label: "Settings", icon: "⚙️" },
-        ].map(a => (
+        ].filter(a => !a.adminOnly || user?.role === "admin").map(a => (
           <Link key={a.to} to={a.to} className="db-action-pill">
             <span>{a.icon}</span> {a.label}
           </Link>
@@ -175,7 +182,7 @@ const Dashboard = () => {
           <div className="db-panel">
             <div className="db-panel-header">
               <span className="db-panel-title">Recent Clients</span>
-              <Link to="/customers" className="db-panel-link">All →</Link>
+              {user?.role === "admin" && <Link to="/customers" className="db-panel-link">All →</Link>}
             </div>
             {data.recentCustomers.length === 0 ? (
               <div className="db-empty">No customers yet.</div>
@@ -198,7 +205,7 @@ const Dashboard = () => {
           <div className="db-panel">
             <div className="db-panel-header">
               <span className="db-panel-title">Top Products</span>
-              <Link to="/products" className="db-panel-link">All →</Link>
+              {user?.role === "admin" && <Link to="/products" className="db-panel-link">All →</Link>}
             </div>
             {data.soldProducts.length === 0 ? (
               <div className="db-empty">No sales data yet.</div>

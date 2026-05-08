@@ -21,6 +21,7 @@ export default function ProformaInvoiceTemplate({
   org,
   bank,
   preparedBy,
+  terms,
   transporter = "",
   deliveryLocation = "",
 }) {
@@ -185,7 +186,11 @@ export default function ProformaInvoiceTemplate({
             </div>
             <div className="pi-terms">
               <div className="pi-terms-title">TERMS & CONDITIONS:</div>
-              {org?.terms_conditions ? (
+              {terms ? (
+                terms.split('\n').map((term, i) => (
+                  <div key={i}>{term}</div>
+                ))
+              ) : org?.terms_conditions ? (
                 org.terms_conditions.split('\n').map((term, i) => (
                   <div key={i}>{term}</div>
                 ))

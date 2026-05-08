@@ -35,6 +35,9 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/org-settings", orgSettingsRoutes);
 
+// Serve static files from the React app build folder
+app.use(express.static(path.join(__dirname, "../build")));
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -84,6 +87,12 @@ app.get("/api/dashboard", require("./middleware/auth").authenticateToken, async 
     console.error("Dashboard error:", err);
     res.status(500).json({ error: "Failed to load dashboard" });
   }
+});
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../build/index.html"));
 });
 
 // Start server

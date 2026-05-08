@@ -114,12 +114,19 @@ async function initDatabase() {
         grand_total DECIMAL(12,2) DEFAULT 0.00,
         total_in_words VARCHAR(255),
         terms TEXT,
+        notes TEXT,
         status ENUM('draft', 'confirmed', 'paid') DEFAULT 'draft',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
       )
     `);
+
+    // ── Migration: ensure notes column exists ──
+    try {
+      await db.query(`ALTER TABLE invoices ADD COLUMN notes TEXT`);
+      console.log("  ↳ Added notes column to invoices table");
+    } catch (e) {}
 
     // Invoice items table
     await db.query(`

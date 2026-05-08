@@ -52,6 +52,8 @@ const Invoice = () => {
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [productSearch, setProductSearch] = useState({});
+  const [showProductDropdown, setShowProductDropdown] = useState({});
 
   const [orgSettings, setOrgSettings] = useState({
     company_name: COMPANY.name,
@@ -71,20 +73,21 @@ const Invoice = () => {
   const saved = sessionStorage.getItem("invoice_draft");
   const draft = saved ? JSON.parse(saved) : null;
 
-  const [invInfo, setInvInfo] = useState(draft?.invInfo || { invoice_no: "", invoice_date: new Date().toISOString().split("T")[0] });
+  const [invInfo, setInvInfo] = useState(draft?.invInfo || { invoice_no: "", invoice_date: new Date().toISOString().split("T")[0], status: "pending", notes: "" });
   const [client, setClient] = useState(draft?.client || { customer_id: "", name: "", address: "", gst: "" });
   const [items, setItems] = useState(draft?.items || [{ product_id: "", product_name: "", hsn_code: "", unit_price: "", unit: "Per Kg", qty: "", total: 0 }]);
   const [tax, setTax] = useState(draft?.tax || { cgst_rate: 2.5, sgst_rate: 2.5, discount_rate: 0 });
+  const [terms, setTerms] = useState(draft?.terms || DEFAULT_TERMS);
 
   // Auto-save draft to sessionStorage on every change
   useEffect(() => {
-    sessionStorage.setItem("invoice_draft", JSON.stringify({ invInfo, client, items, tax }));
-  }, [invInfo, client, items, tax]);
+    sessionStorage.setItem("invoice_draft", JSON.stringify({ invInfo, client, items, tax, terms }));
+  }, [invInfo, client, items, tax, terms]);
 
   useEffect(() => {
     api.get("/customers").then(r => setCustomers(r.data.customers)).catch(() => {});
     api.get("/products").then(r => setProducts(r.data.products)).catch(() => {});
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     // Admin editable only: used for invoice preview + PDF.
@@ -106,9 +109,10 @@ const Invoice = () => {
           bank_ifsc: s.bank_ifsc,
           bank_branch: s.bank_branch,
         });
+        if (!draft?.terms && s.terms_conditions) setTerms(s.terms_conditions);
       })
       .catch(() => {});
-  }, []);
+  }, [api, draft?.terms]);
 
   const selectCustomer = (id) => {
     if (!id) { setClient({ customer_id: "", name: "", address: "", gst: "" }); return; }
@@ -127,13 +131,25 @@ const Invoice = () => {
 
   const selectProduct = (i, id) => {
     const n = [...items];
-    if (!id) { n[i] = { ...n[i], product_id: "", product_name: "", hsn_code: "", unit_price: "", unit: "Per Kg", qty: "", total: 0 }; setItems(n); return; }
+    if (!id) { n[i] = { ...n[i], product_id: "", product_name: "", hsn_code: "", unit_price: "", unit: "Per Kg", qty: "", total: 0 }; setItems(n); setProductSearch({...productSearch, [i]: ""}); return; }
     const p = products.find(x => x.id === parseInt(id));
     if (p) {
       const qty = n[i].qty || 1;
       n[i] = { ...n[i], product_id: p.id, product_name: p.name, hsn_code: p.hsn_code || "", unit_price: parseFloat(p.unit_price), unit: p.unit, qty, total: parseFloat(p.unit_price) * qty };
       setItems(n);
+      setProductSearch({...productSearch, [i]: p.name});
+      setShowProductDropdown({...showProductDropdown, [i]: false});
     }
+  };
+
+  const handleProductSearchChange = (i, value) => {
+    setProductSearch({...productSearch, [i]: value});
+    setShowProductDropdown({...showProductDropdown, [i]: value.length > 0});
+  };
+
+  const getFilteredProducts = (searchText) => {
+    if (!searchText) return [];
+    return products.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase())).slice(0, 8);
   };
 
   const subtotal = items.reduce((s, it) => s + (parseFloat(it.total) || 0), 0);
@@ -144,7 +160,6 @@ const Invoice = () => {
   // Show empty instead of 0 so user can type directly
   const displayVal = (v) => (v === "" || v === 0 || v === "0") ? "" : v;
   const fmtCur = (n) => `₹${parseFloat(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
-  const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
   const showMsg = (msg, err = false) => { setToast({ msg, err }); setTimeout(() => setToast(null), 3000); };
 
   // Save invoice to database
@@ -155,12 +170,12 @@ const Invoice = () => {
     setSaving(true);
     try {
       const res = await api.post("/invoices", {
-        ...invInfo, customer_id: client.customer_id || null, status: "draft",
-        company_name: COMPANY.name, company_address: COMPANY.address, company_gst: COMPANY.gst, company_phone: COMPANY.phone, company_email: COMPANY.email,
-        bank_name: BANK.name, bank_account_name: BANK.account_name, bank_account_no: BANK.account_no, bank_ifsc: BANK.ifsc, bank_branch: BANK.branch,
+        ...invInfo, customer_id: client.customer_id || null,
+        company_name: orgSettings.company_name, company_address: `${orgSettings.company_address_line1}\n${orgSettings.company_address_line2}`, company_gst: orgSettings.company_gst, company_phone: orgSettings.company_phone, company_email: orgSettings.company_email,
+        bank_name: orgSettings.bank_name, bank_account_name: orgSettings.bank_account_name, bank_account_no: orgSettings.bank_account_no, bank_ifsc: orgSettings.bank_ifsc, bank_branch: orgSettings.bank_branch,
         client_name: client.name, client_address: client.address, client_gst: client.gst,
         subtotal, cgst_rate: tax.cgst_rate, sgst_rate: tax.sgst_rate, cgst, sgst, discount: discountAmt, grand_total: grandTotal,
-        total_in_words: numToWords(grandTotal), terms: DEFAULT_TERMS,
+        total_in_words: numToWords(grandTotal), terms, notes: invInfo.notes,
         items: items.map(it => ({ product_id: it.product_id || null, product_name: it.product_name, hsn_code: it.hsn_code, unit_price: it.unit_price, unit: it.unit, qty: it.qty, total: it.total })),
       });
       showMsg("Invoice saved successfully!");
@@ -178,12 +193,12 @@ const Invoice = () => {
     setSaving(true);
     try {
       await api.post("/invoices", {
-        ...invInfo, customer_id: client.customer_id || null, status: "draft",
-        company_name: COMPANY.name, company_address: COMPANY.address, company_gst: COMPANY.gst, company_phone: COMPANY.phone, company_email: COMPANY.email,
-        bank_name: BANK.name, bank_account_name: BANK.account_name, bank_account_no: BANK.account_no, bank_ifsc: BANK.ifsc, bank_branch: BANK.branch,
+        ...invInfo, customer_id: client.customer_id || null,
+        company_name: orgSettings.company_name, company_address: `${orgSettings.company_address_line1}\n${orgSettings.company_address_line2}`, company_gst: orgSettings.company_gst, company_phone: orgSettings.company_phone, company_email: orgSettings.company_email,
+        bank_name: orgSettings.bank_name, bank_account_name: orgSettings.bank_account_name, bank_account_no: orgSettings.bank_account_no, bank_ifsc: orgSettings.bank_ifsc, bank_branch: orgSettings.bank_branch,
         client_name: client.name, client_address: client.address, client_gst: client.gst,
         subtotal, cgst_rate: tax.cgst_rate, sgst_rate: tax.sgst_rate, cgst, sgst, discount: discountAmt, grand_total: grandTotal,
-        total_in_words: numToWords(grandTotal), terms: DEFAULT_TERMS,
+        total_in_words: numToWords(grandTotal), terms, notes: invInfo.notes,
         items: items.map(it => ({ product_id: it.product_id || null, product_name: it.product_name, hsn_code: it.hsn_code, unit_price: it.unit_price, unit: it.unit, qty: it.qty, total: it.total })),
       });
       showMsg("Invoice saved to database & generating PDF...");
@@ -317,6 +332,19 @@ const Invoice = () => {
         <div className="form-grid">
           <div className="form-group"><label>Invoice Number *</label><input value={invInfo.invoice_no} onChange={e => setInvInfo({...invInfo, invoice_no: e.target.value})} placeholder="e.g. PI-2026-0001" /></div>
           <div className="form-group"><label>Date</label><input type="date" value={invInfo.invoice_date} onChange={e => setInvInfo({...invInfo, invoice_date: e.target.value})} /></div>
+          <div className="form-group">
+            <label>Status</label>
+            <div style={{ display: "flex", gap: 5, background: "#f3f4f6", padding: 3, borderRadius: 8 }}>
+              <button
+                onClick={() => setInvInfo({...invInfo, status: "pending"})}
+                style={{ flex: 1, padding: "8px 12px", border: "none", borderRadius: 6, fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", background: invInfo.status === "pending" ? "#fff" : "transparent", color: invInfo.status === "pending" ? "#d97706" : "#6b7280", boxShadow: invInfo.status === "pending" ? "0 1px 3px rgba(0,0,0,0.1)" : "none" }}
+              >⏳ Pending</button>
+              <button
+                onClick={() => setInvInfo({...invInfo, status: "paid"})}
+                style={{ flex: 1, padding: "8px 12px", border: "none", borderRadius: 6, fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", background: invInfo.status === "paid" ? "#fff" : "transparent", color: invInfo.status === "paid" ? "#059669" : "#6b7280", boxShadow: invInfo.status === "paid" ? "0 1px 3px rgba(0,0,0,0.1)" : "none" }}
+              >✅ Paid</button>
+            </div>
+          </div>
         </div>
       </div></div>
 
@@ -341,27 +369,41 @@ const Invoice = () => {
           <tbody>{items.map((item, i) => (
             <tr key={i}>
               <td>
-                <select
-                  onChange={e => selectProduct(i, e.target.value)}
-                  value={item.product_id || ""}
-                  style={{ ...selStyle, width: "100%", marginBottom: 4 }}
-                >
-                  <option value="">— Select Product —</option>
-                  {["Organic Certified Agro Chemicals","Organic Agro Chemicals","Agro Chemicals","Fertilizers","Seeds","Sprayers","FMCG Products","Household Products"].map(cat => {
-                    const catProducts = products.filter(p => p.category === cat);
-                    return catProducts.length > 0 ? (
-                      <optgroup key={cat} label={cat}>
-                        {catProducts.map(p => <option key={p.id} value={p.id}>{p.name} — ₹{p.unit_price}/{p.unit?.replace("Per ","")}</option>)}
-                      </optgroup>
-                    ) : null;
-                  })}
-                  {products.filter(p => !p.category).length > 0 && (
-                    <optgroup label="Other">
-                      {products.filter(p => !p.category).map(p => <option key={p.id} value={p.id}>{p.name} — ₹{p.unit_price}</option>)}
-                    </optgroup>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Search or select product..."
+                    value={productSearch[i] || item.product_name || ""}
+                    onChange={e => handleProductSearchChange(i, e.target.value)}
+                    onFocus={() => setShowProductDropdown({...showProductDropdown, [i]: true})}
+                    style={{ ...inputStyle, width: "100%", marginBottom: 4 }}
+                  />
+                  {showProductDropdown[i] && (
+                    <div style={{
+                      position: "absolute", top: "100%", left: 0, right: 0, background: "#fff", border: "1px solid #d1d5db", borderTop: "none", borderRadius: "0 0 6px 6px", zIndex: 10, maxHeight: 200, overflowY: "auto", boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+                    }}>
+                      {getFilteredProducts(productSearch[i] || "").length > 0 ? (
+                        getFilteredProducts(productSearch[i] || "").map(p => (
+                          <div
+                            key={p.id}
+                            onClick={() => selectProduct(i, p.id)}
+                            style={{
+                              padding: "8px 12px", cursor: "pointer", borderBottom: "1px solid #f3f4f6", fontSize: "0.8rem", color: "#374151", transition: "background 0.2s",
+                              background: "transparent", ":hover": { background: "#f3f4f6" }
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = "#f3f4f6"}
+                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          >
+                            <div style={{ fontWeight: 500 }}>{p.name}</div>
+                            <div style={{ fontSize: "0.75rem", color: "#9ca3af" }}>₹{p.unit_price}/{p.unit?.replace("Per ","")} • HSN: {p.hsn_code || "—"}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ padding: "8px 12px", color: "#9ca3af", fontSize: "0.8rem" }}>No products found</div>
+                      )}
+                    </div>
                   )}
-                </select>
-                <input value={item.product_name} onChange={e => updateItem(i, "product_name", e.target.value)} placeholder="Product name" style={inputStyle} />
+                </div>
               </td>
               <td><input value={item.hsn_code} onChange={e => updateItem(i, "hsn_code", e.target.value)} style={{...inputStyle, width: 70}} /></td>
               <td><input type="number" value={displayVal(item.unit_price)} placeholder="0" onChange={e => updateItem(i, "unit_price", e.target.value === "" ? "" : parseFloat(e.target.value))} style={{...inputStyle, width: 100}} /></td>
@@ -396,18 +438,27 @@ const Invoice = () => {
         </div>
       </div></div>
 
+      {/* Terms & Notes */}
+      <div className="card"><div className="card-header"><h3>📝 Terms & Notes</h3></div><div className="card-body">
+        <div className="form-grid">
+          <div className="form-group full"><label>Internal Notes / Remarks</label><textarea value={invInfo.notes} onChange={e => setInvInfo({...invInfo, notes: e.target.value})} placeholder="Internal notes for this invoice..." style={{ minHeight: 80 }} /></div>
+          <div className="form-group full"><label>Terms & Conditions (Editable)</label><textarea value={terms} onChange={e => setTerms(e.target.value)} placeholder="Invoice terms..." style={{ minHeight: 120 }} /></div>
+        </div>
+      </div></div>
+
       {/* PDF Preview - rendered on-screen but hidden by opacity for proper html2canvas capture */}
       {showPreview && <div className="pdf-capture-overlay" style={{ position: "absolute", top: 0, left: 0, opacity: 0.01, pointerEvents: "none", zIndex: -999 }}>
         <div ref={invoiceRef} style={{ width: 794, overflow: "visible" }}>
           <ProformaInvoiceTemplate
             invoiceNo={invInfo.invoice_no}
             invoiceDate={invInfo.invoice_date}
-            statusLabel="DRAFT"
+            statusLabel={invInfo.status.toUpperCase()}
             client={{ name: client.name, address: client.address, gst: client.gst }}
             items={items.filter((it) => it.product_name)}
             rates={{ cgst_rate: tax.cgst_rate, sgst_rate: tax.sgst_rate }}
             totals={{ subtotal, cgst, sgst, discount: discountAmt, grand_total: grandTotal }}
             totalInWords={numToWords(grandTotal)}
+            terms={terms}
             preparedBy={{ name: user?.name, phone: user?.phone, email: user?.email, employee_id: user?.employee_id }}
             org={{
               company_name: orgSettings.company_name,

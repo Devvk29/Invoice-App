@@ -12,8 +12,10 @@ const Layout = ({ children }) => {
 
   const navItems = [
     { path: "/", label: "Dashboard", emoji: "📊" },
-    { path: "/customers", label: "Customers", emoji: "👥" },
-    { path: "/products", label: "Products", emoji: "📦" },
+    ...(user?.role === "admin" ? [
+      { path: "/customers", label: "Customers", emoji: "👥" },
+      { path: "/products", label: "Products", emoji: "📦" }
+    ] : []),
     { path: "/invoice", label: "New Invoice", emoji: "📄" },
     { path: "/invoice-history", label: "Invoice History", emoji: "🧾" },
     { path: "/reports", label: "Reports", emoji: "📈" },

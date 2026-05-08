@@ -26,8 +26,9 @@ const CATEGORY_ICONS = {
 };
 
 const Products = () => {
-  const { api } = useAuth();
+  const { api, user } = useAuth();
   const [products, setProducts] = useState([]);
+
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState(null);
@@ -37,6 +38,16 @@ const Products = () => {
   const [form, setForm] = useState({ name: "", hsn_code: "", unit_price: "", unit: "Per Unit", description: "", category: "", stock: "" });
 
   useEffect(() => { fetchProducts(); }, []);
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="page" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "80vh", textAlign: "center" }}>
+        <div style={{ fontSize: "4rem", marginBottom: "20px" }}>🚫</div>
+        <h1>Access Denied</h1>
+        <p style={{ color: "#6b7280", maxWidth: "400px" }}>You do not have permission to view or manage products. Please contact your administrator if you believe this is an error.</p>
+      </div>
+    );
+  }
 
   const fetchProducts = async () => {
     try { const res = await api.get("/products"); setProducts(res.data.products); }

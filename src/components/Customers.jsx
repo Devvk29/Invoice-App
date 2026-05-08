@@ -3,14 +3,25 @@ import { useAuth } from "../context/AuthContext";
 import "../Pages.css";
 
 const Customers = () => {
-  const { api } = useAuth();
+  const { api, user } = useAuth();
   const [customers, setCustomers] = useState([]);
+
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [toast, setToast] = useState(null);
   const [form, setForm] = useState({ name: "", company: "", phone: "", email: "", address: "", city: "", state: "", pincode: "", gst_no: "" });
 
   useEffect(() => { fetchCustomers(); }, []);
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="page" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "80vh", textAlign: "center" }}>
+        <div style={{ fontSize: "4rem", marginBottom: "20px" }}>🚫</div>
+        <h1>Access Denied</h1>
+        <p style={{ color: "#6b7280", maxWidth: "400px" }}>You do not have permission to view or manage customers. Please contact your administrator if you believe this is an error.</p>
+      </div>
+    );
+  }
 
   const fetchCustomers = async () => {
     try { const res = await api.get("/customers"); setCustomers(res.data.customers); }

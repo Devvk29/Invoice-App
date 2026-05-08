@@ -118,6 +118,11 @@ router.get("/:id", authenticateToken, async (req, res) => {
     const [invoices] = await pool.query(query, [req.params.id]);
     if (invoices.length === 0) return res.status(404).json({ error: "Invoice not found" });
 
+    // Role-based access control: sales can only view their own invoices
+    if (req.user.role === "sales" && invoices[0].user_id !== req.user.id) {
+      return res.status(403).json({ error: "Access denied. You can only view your own invoices." });
+    }
+
     const [items] = await pool.query("SELECT * FROM invoice_items WHERE invoice_id = ?", [req.params.id]);
     res.json({ invoice: invoices[0], items });
   } catch (err) {
@@ -135,12 +140,28 @@ router.patch("/:id/status", authenticateToken, async (req, res) => {
   }
 });
 
-// Delete — Admin only
-router.delete("/:id", authenticateToken, requireRole("admin"), async (req, res) => {
+// Delete — Admin only, or sales can delete their own invoices
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
+    // Get invoice first to check ownership
+    const [invoices] = await pool.query("SELECT user_id FROM invoices WHERE id = ?", [req.params.id]);
+    if (invoices.length === 0) return res.status(404).json({ error: "Invoice not found" });
+
+    const invoice = invoices[0];
+
+    // Check permissions: admin can delete any invoice, sales can only delete their own
+    if (req.user.role === "sales" && invoice.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Access denied. You can only delete your own invoices." });
+    }
+
+    if (req.user.role !== "admin" && req.user.role !== "sales") {
+      return res.status(403).json({ error: "Access denied. Only admin or sales can delete invoices." });
+    }
+
     await pool.query("DELETE FROM invoices WHERE id = ?", [req.params.id]);
-    res.json({ message: "Invoice deleted" });
+    res.json({ message: "Invoice deleted successfully" });
   } catch (err) {
+    console.error("Delete invoice error:", err);
     res.status(500).json({ error: "Failed to delete invoice" });
   }
 });

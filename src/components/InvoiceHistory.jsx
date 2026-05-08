@@ -105,13 +105,22 @@ const InvoiceHistory = () => {
   };
 
   const deleteInvoice = async (id) => {
+    const inv = invoices.find(i => i.id === id);
+    
+    // Check if sales person is trying to delete someone else's invoice
+    if (user.role === "sales" && inv.user_id !== user.id) {
+      alert("You can only delete your own invoices.");
+      return;
+    }
+    
     if (!window.confirm("Are you sure you want to delete this invoice?")) return;
     setDeleting(id);
     try {
       await api.delete(`/invoices/${id}`);
       setInvoices(invoices.filter(inv => inv.id !== id));
-    } catch {
-      alert("Failed to delete invoice");
+      alert("Invoice deleted successfully");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to delete invoice");
     } finally {
       setDeleting(null);
     }
@@ -213,21 +222,16 @@ const InvoiceHistory = () => {
                     <td className="cell-bold">{inv.client_name || "—"}</td>
                     <td className="cell-mono">{fmt(inv.grand_total)}</td>
                     <td>
-                      <select
-                        value={inv.status === "paid" ? "paid" : "pending"}
-                        onChange={e => {
-                          const newStatus = e.target.value === "paid" ? "paid" : "confirmed";
-                          updateStatus(inv.id, newStatus);
-                        }}
-                        style={{
-                          padding: "4px 12px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "Inter",
-                          background: inv.status === "paid" ? "#d1fae5" : "#fef3c7",
-                          color: inv.status === "paid" ? "#065f46" : "#92400e",
-                        }}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
-                      </select>
+                      <div style={{ display: "flex", gap: 3, background: "#f3f4f6", padding: 2, borderRadius: 8, width: "fit-content" }}>
+                        <button
+                          onClick={() => updateStatus(inv.id, "confirmed")}
+                          style={{ padding: "4px 8px", border: "none", borderRadius: 6, fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", background: inv.status !== "paid" ? "#fff" : "transparent", color: inv.status !== "paid" ? "#d97706" : "#6b7280", boxShadow: inv.status !== "paid" ? "0 1px 2px rgba(0,0,0,0.05)" : "none" }}
+                        >Pending</button>
+                        <button
+                          onClick={() => updateStatus(inv.id, "paid")}
+                          style={{ padding: "4px 8px", border: "none", borderRadius: 6, fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", background: inv.status === "paid" ? "#fff" : "transparent", color: inv.status === "paid" ? "#059669" : "#6b7280", boxShadow: inv.status === "paid" ? "0 1px 2px rgba(0,0,0,0.05)" : "none" }}
+                        >Paid</button>
+                      </div>
                     </td>
                     <td style={{ fontSize: "0.78rem", color: "#6b7280" }}>{inv.prepared_by_name || "—"}</td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
@@ -235,8 +239,9 @@ const InvoiceHistory = () => {
                       <button
                         className="btn-danger"
                         onClick={() => deleteInvoice(inv.id)}
-                        disabled={deleting === inv.id}
-                        style={{ padding: "4px 10px", fontSize: "0.75rem" }}
+                        disabled={deleting === inv.id || (user.role === "sales" && inv.user_id !== user.id)}
+                        title={user.role === "sales" && inv.user_id !== user.id ? "You can only delete your own invoices" : "Delete invoice"}
+                        style={{ padding: "4px 10px", fontSize: "0.75rem", opacity: user.role === "sales" && inv.user_id !== user.id ? 0.5 : 1 }}
                       >
                         {deleting === inv.id ? "..." : "🗑️"}
                       </button>
@@ -291,6 +296,7 @@ const InvoiceHistory = () => {
                   bank_ifsc: inv.bank_ifsc,
                   bank_branch: inv.bank_branch,
                 }}
+                terms={inv.terms}
                 transporter=""
                 deliveryLocation=""
               />

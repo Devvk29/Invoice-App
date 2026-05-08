@@ -3,7 +3,10 @@ import axios from "axios";
 
 const AuthContext = createContext(null);
 
-const API_URL = `http://${window.location.hostname}:5000/api`;
+const isDev = window.location.port === "3000";
+const API_URL = isDev 
+  ? `http://${window.location.hostname}:5000/api`
+  : `${window.location.origin}/api`;
 
 // Axios instance with auth token
 const api = axios.create({ baseURL: API_URL });

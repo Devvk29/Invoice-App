@@ -1,9 +1,9 @@
-const { verifyToken, getFirebaseUser } = require("../firebase-auth");
+const { verifyToken } = require("../jwt-auth");
 require("dotenv").config();
 
 /**
- * Authenticate using Firebase ID Token
- * Token should be in Authorization header: Bearer <idToken>
+ * Authenticate using JWT Token
+ * Token should be in Authorization header: Bearer <token>
  */
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -14,24 +14,17 @@ const authenticateToken = async (req, res, next) => {
   }
 
   try {
-    // Verify Firebase ID token
-    const decodedToken = await verifyToken(token);
-    const uid = decodedToken.uid;
-
-    // Fetch user data from Firestore (to get role and other info)
-    const user = await getFirebaseUser(uid);
-    if (!user) {
-      return res.status(401).json({ error: "User not found." });
-    }
+    // Verify JWT token
+    const decodedToken = verifyToken(token);
 
     // Attach user to request
     req.user = {
-      id: uid,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      employee_id: user.employee_id,
-      role: user.role || 'sales',
+      id: decodedToken.id,
+      email: decodedToken.email,
+      name: decodedToken.name,
+      phone: decodedToken.phone,
+      employee_id: decodedToken.employee_id,
+      role: decodedToken.role || 'sales',
     };
 
     next();
